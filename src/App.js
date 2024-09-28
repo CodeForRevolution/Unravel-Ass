@@ -19,9 +19,11 @@ function App() {
       (page - 1) * itemsPerPage,
       page * itemsPerPage
     );
+    console.log("before seTimeout",loading)
     setTimeout(() => {
       setCartItems((prev) => [...prev, ...newItems]);
-      setLoading((pre) => !pre);
+      setLoading(false);
+      console.log("in TimeOut",loading)
     }, 1000);
   };
 
@@ -43,6 +45,7 @@ function App() {
       }
     } catch (error) {
       console.log("ERROR****");
+      setLoading(false);
     }
   }, [page, maxPage, loading]);
 
