@@ -1,8 +1,8 @@
-import logo from "./logo.svg";
+
 import "./App.css";
 import RoomCart from "./component/roomCart";
-import cartData from "./data/roomData.json.json"; // Import your JSON file locally
-import { useState, useEffect, useRef } from "react";
+import cartData from "./data/roomData.json.json"; 
+import { useState, useEffect, useRef, useCallback } from "react";
 import Skeleton from "./component/skeleton/skeleton";
 
 function App() {
@@ -10,56 +10,52 @@ function App() {
   const [page, setPage] = useState(1); // Page number for infinite scrolling
   const [loading, setLoading] = useState(false); // Loading state
   const loaderRef = useRef(null); // Reference to the loading div
-
-  const itemsPerPage = 10; // Number of items to load per scroll
-
-  console.log("Data", cartData.avail_id);
+  const [maxPage, setMaxPage] = useState(3);
+  const [itemsPerPage, setItemPerPage] = useState(10);
 
   // Fetch more cart items based on the page number
   const loadItems = () => {
-    console.log("all length", cartData.rooms_by_serial_no[0].rooms.length);
-    console.log("all length", cartData.rooms_by_serial_no[0].rooms);
     const newItems = cartData.rooms_by_serial_no[0].rooms.slice(
       (page - 1) * itemsPerPage,
       page * itemsPerPage
     );
     setTimeout(() => {
       setCartItems((prev) => [...prev, ...newItems]);
-      setLoading(false);
+      setLoading((pre) => !pre);
     }, 1000);
   };
 
   // Trigger fetching more items when page changes
   useEffect(() => {
-    console.log("Setting the page again", page);
-    setLoading(true);
     loadItems();
-
-    console.log("Data", cartItems);
   }, [page]);
 
-  const handleScroll = () => {
+  const handleScroll2 = useCallback(() => {
     try {
-      if (!loading) {
+      if (!loading && page <= maxPage - 1) {
         if (
           window.innerHeight + document.documentElement.scrollTop + 0.8 >=
           document.documentElement.scrollHeight
         ) {
-          setLoading(true); // Immediately set loading to true to prevent multiple page increments
+          setLoading(true); // Set loading to true to fetch new items
           setPage((prevPage) => prevPage + 1); // Increment page
         }
       }
     } catch (error) {
       console.log("ERROR****");
     }
-  };
+  }, [page, maxPage, loading]);
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    const maxpage = Math.ceil(
+      cartData.rooms_by_serial_no[0].rooms.length / itemsPerPage
+    );
+    setMaxPage((prev) => maxpage);
+    window.addEventListener("scroll", handleScroll2);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll2);
     };
-  }, []);
+  }, [maxPage, page, loading]);
 
   return (
     <>
@@ -73,15 +69,16 @@ function App() {
               bed_type={data.properties.bed_type}
               max_adult={data.properties.room_capacity.max_adult}
               totalPrice={data.variants[0].total_price.total_price_rounded}
-              discountedPrice={data.variants[0].total_price.discounted_price_rounded}
-              roomImage={ data.properties?.room_images?.[0]?.image_urls
-                || null}
-              roomVideo={ data.properties?.video_url?.med || null}
+              discountedPrice={
+                data.variants[0].total_price.discounted_price_rounded
+              }
+              roomImage={data.properties?.room_images?.[0]?.image_urls || null}
+              roomVideo={data.properties?.video_url?.med || null}
             />
           );
         })}
         {loading
-          ? [1, 2, 3, 4, 5, 4, 5, 6, 3, 2].map(() => {
+          ?Array(itemsPerPage).fill().map(() => {
               return <Skeleton />;
             })
           : null}

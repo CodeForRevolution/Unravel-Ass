@@ -1,6 +1,10 @@
 import React from "react";
 import "./roomCart.css";
-import { useRef,useEffect ,useState} from "react";
+import { useRef, useEffect, useState } from "react";
+import VideoPlayer from "./mediaComponent/mediaPlayer";
+import Description from "./HelperComponent/description";
+
+
 const RoomCart = ({
   name,
   bed_type,
@@ -17,7 +21,7 @@ const RoomCart = ({
   );
 
   function getRandomNumber() {
-    return Math.floor(Math.random() * 8); // Generates a number between 0 and 7
+    return Math.floor(Math.random() * 7);
   }
 
   let index = getRandomNumber();
@@ -26,91 +30,30 @@ const RoomCart = ({
   useEffect(() => {
     const mediaQuery = window.matchMedia("(pointer: coarse)"); // Checks for touch devices
     setIsTouchDevice(mediaQuery.matches);
-    console.log("*****media cursor***",isTouchDevice)
   }, []);
-
-  // Play/Pause video based on viewport visibility (only for touch devices)
-  useEffect(() => {
-    if (isTouchDevice) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const video = videoRef.current;
-            if (entry.isIntersecting) {
-              video.volume = 0.5;
-              video.play(); // Play the video when in the viewport
-            } else if (video) {
-              video.pause(); // Pause the video when out of the viewport
-            }
-          });
-        },
-        { threshold: 0.5 } // Trigger when at least 50% of the video is visible
-      );
-
-      if (videoRef.current) {
-        observer.observe(videoRef.current); // Observe the video element
-      }
-
-      return () => {
-        if (videoRef.current) {
-          observer.unobserve(videoRef.current); // Cleanup observer
-        }
-      };
-    }
-  }, [isTouchDevice]);
-
-  // Handlers for playing/pausing video on hover for non-touch devices
-  const handleMouseEnter = () => {
- try {
-
-  console.log("***HOVERING THE MOUSE*****",isTouchDevice)
-  if (!isTouchDevice && videoRef.current) {
-    videoRef.current.volume = 0.5;
-    videoRef.current.play();
-  }
-  
- } catch (error) {
-  console.log("ERROR<>",error)
- }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isTouchDevice && videoRef.current) {
-      videoRef.current.pause();
-    }
-  };
-
-
-
-
 
   return (
     <div class="col-sm-6  col-md-4 col-lg-3   my-3 px-1">
-      <div class="room-card"
-       onMouseEnter={handleMouseEnter} // Play video when hovered (for non-touch devices)
-       onMouseLeave={handleMouseLeave}
+      <div
+        class="room-card"
       >
         <div class="room-image">
-        {roomVideo ? (
-            <video
-              ref={videoRef}
-              controls
-              width="100%"
-              playsInline  // Ensures playback without full-screen on mobile
-             
-              // Pause video when hover stops (for non-touch devices)
-            >
-              <source src={roomVideo} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+          {roomVideo ? (
+            <VideoPlayer src={roomVideo} isTouchDevice={isTouchDevice} />
           ) : (
-            <img src={roomImage?.[index] || ""} alt="Room Image" />
+            <img
+              src={
+                roomImage?.[index] ||
+                "https://d1tf573zhz3zzy.cloudfront.net/data/content…/HOTEL_ROOM/sourced/Dubai/126675265/257802447.jpg"
+              }
+              alt="Room Image"
+            />
           )}
         </div>
         <div class="room-info">
           <ul>
             <li>
-              <i class="bi bi-house-door"></i> {name.substring(0,40)}
+              <i class="bi bi-house-door"></i> {name.substring(0, 40)}
             </li>
             <li>
               <i class="bi bi-bed"></i> {bed_type} Bed
@@ -121,11 +64,13 @@ const RoomCart = ({
           </ul>
           <p class="price-info">
             <span class="old-price">$,{totalPrice}</span> $,
-            {discountedPrice }
+            {discountedPrice}
             <span class="discount ms-2">{discount}% off</span>
           </p>
           <p class="cancellation-policy">Cancellation policy</p>
-          <p>{"check the room"}</p>
+          <p>
+            <Description text={description[index]} maxLength={70} />
+          </p>
           <button class="btn btn-success select-button">Select</button>
         </div>
       </div>
@@ -134,3 +79,13 @@ const RoomCart = ({
 };
 
 export default RoomCart;
+
+const description = [
+  "Discover our elegant hotel room with plush furnishings, a serene ambiance, and stunning views for a perfect getaway",
+  "Enjoy a luxurious stay in our spacious room, complete with modern amenities, a comfy bed, and beautiful décor",
+  "Escape to our cozy hotel room, featuring a relaxing atmosphere, high-end amenities, and breathtaking views to rejuvenate you",
+  "Stay in style in our chic hotel room, designed with contemporary décor, soft lighting, and all the comforts you need",
+  " Experience a modern retreat in our well-appointed room, featuring cutting-edge technology, comfortable furnishings, and a peaceful vibe",
+  " Enjoy a cozy getaway in our thoughtfully designed room, perfect for relaxation, complete with a warm ambiance and top-notch amenities.",
+  "Experience the comforts of home in our inviting hotel room, offering all the essentials for a delightful stay and memorable moments.",
+];
